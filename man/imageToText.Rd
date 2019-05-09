@@ -15,4 +15,3 @@ get the image back as encoded file
 \description{
 base64 encodes an image file
 }
-

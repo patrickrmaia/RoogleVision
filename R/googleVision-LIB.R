@@ -7,6 +7,7 @@
 # TEXT_DETECTION	Run OCR.
 # SAFE_SEARCH_DETECTION	Run various computer vision models to compute image safe-search properties.
 # IMAGE_PROPERTIES	Compute a set of properties about the image (such as the images dominant colors).
+# OBJECT_LOCALIZATION - Run localizer for object detection.
 
 
 ############################################################
@@ -32,7 +33,7 @@ imageToText <- function(imagePath) {
 #' @description a utility to extract features from the API response
 #'
 #' @param pp an API response object
-#' @param feature the name of the feature to return 
+#' @param feature the name of the feature to return
 #' @return a data frame
 #'
 extractResponse <- function(pp, feature){
@@ -51,6 +52,9 @@ extractResponse <- function(pp, feature){
   if (feature == "LANDMARK_DETECTION") {
     return(pp$content$responses$landmarkAnnotations[[1]])
   }
+  if(feature == "OBJECT_LOCALIZATION"){
+    return(pp$content$responses$localizedObjectAnnotations[[1]])
+  }
 }
 
 
@@ -59,11 +63,11 @@ extractResponse <- function(pp, feature){
 #' @description input an image, provide the feature type and maxNumber of responses
 #'
 #' @param imagePath path or url to the image
-#' @param feature one out of: FACE_DETECTION, LANDMARK_DETECTION, LOGO_DETECTION, LABEL_DETECTION, TEXT_DETECTION
+#' @param feature one out of: FACE_DETECTION, LANDMARK_DETECTION, LOGO_DETECTION, LABEL_DETECTION, TEXT_DETECTION, OBJECT_LOCALIZATION
 #' @param numResults the number of results to return.
 #' @export
 #' @return a data frame with results
-#' @examples 
+#' @examples
 #' f <- system.file("exampleImages", "brandlogos.png", package = "RoogleVision")
 #' getGoogleVisionResponse(imagePath = f, feature = "LOGO_DETECTION")
 #' @import googleAuthR
@@ -73,7 +77,7 @@ getGoogleVisionResponse <- function(imagePath, feature = "LABEL_DETECTION", numR
   #################################
   txt <- imageToText(imagePath)
   ### create Request, following the API Docs.
-  if (is.numeric(numResults)) { 
+  if (is.numeric(numResults)) {
     body <- paste0('{  "requests": [    {   "image": { "content": "',txt,'" }, "features": [  { "type": "',feature,'", "maxResults": ',numResults,'} ],  }    ],}')
   } else {
     body <- paste0('{  "requests": [    {   "image": { "content": "',txt,'" }, "features": [  { "type": "',feature,'" } ],  }    ],}')
@@ -82,7 +86,7 @@ getGoogleVisionResponse <- function(imagePath, feature = "LABEL_DETECTION", numR
   simpleCall <- gar_api_generator(baseURI = "https://vision.googleapis.com/v1/images:annotate", http_header = "POST")
   ## set the request!
   pp <- simpleCall(the_body = body)
-  
+
   if (ncol(pp$content$responses) >0) {
     ## obtain results.
     res <- extractResponse(pp, feature)

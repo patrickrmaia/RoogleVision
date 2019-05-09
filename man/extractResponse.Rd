@@ -17,4 +17,3 @@ a data frame
 \description{
 a utility to extract features from the API response
 }
-
